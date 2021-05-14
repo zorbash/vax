@@ -1,0 +1,49 @@
+name: UK Vaccination Min Age Finder
+
+# Controls when the action will run. 
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '0 * * * *'  # Every hour
+  
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+env:
+  URL: https://www.nhs.uk/conditions/coronavirus-covid-19/coronavirus-vaccination/book-coronavirus-vaccination/
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  check:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    outputs:
+      find-age: ${{ steps.find-age.outputs.age }}
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - id: find-age
+        name: Find the minimum age
+        run: echo "::set-output name=age::$(curl -s $URL | perl -lne 'print $1 if /aged (\d+) or over/')"
+
+      - uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          fields: took
+          custom_payload: |
+            {
+              attachments: [{
+                text: `You must be over ${{ steps.find-age.outputs.age }} to book your vaccination`,
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: always() # Pick up events even if the job fails or is canceled.
