@@ -3,7 +3,8 @@ name: UK Vaccination Min Age Finder
 # Controls when the action will run.
 on:
   schedule:
-    - cron: '0 9 * * *'  # Every day at 09:00
+# Disable it. I booked a vaccination appointment. 💉
+#    - cron: '0 9 * * *'  # Every day at 09:00
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
